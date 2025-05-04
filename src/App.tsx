@@ -40,16 +40,8 @@ function Router() {
       <Route path="/financeiro" component={Financeiro} />
       <Route path="/documentacao" component={Documentacao} />
       <Route path="/alimentacao" component={Alimentacao} />
-      {/* Fallback for unknown routes - redirect to home */}
-      <Route>
-        {() => {
-          // Redirect to home for any unmatched route
-          useEffect(() => {
-            setLocation("/");
-          }, []);
-          return null;
-        }}
-      </Route>
+      {/* Mostrar NotFound para rotas desconhecidas em vez de redirecionar */}
+      <Route component={NotFound} />
     </Switch>
   );
 }
