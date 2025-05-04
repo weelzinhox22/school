@@ -690,8 +690,8 @@ export default function Dashboard() {
                 <div className="text-xs text-gray-500">
                   Comparado a 87% no semestre anterior
                 </div>
-              </div>
-              
+          </div>
+          
               {/* Indicador de frequência média - Mostra o percentual de presença nas últimas semanas */}
               <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
                 <div className="flex items-center gap-2 mb-4">
@@ -703,9 +703,9 @@ export default function Dashboard() {
                 <div className="text-3xl font-bold text-blue-600 mb-2">95%</div>
                 <div className="text-xs text-gray-500">
                   Nas últimas 4 semanas de aula
-                </div>
-              </div>
-              
+          </div>
+        </div>
+        
               {/* Indicador de média geral - Mostra a nota média de todas as turmas e a variação recente */}
               <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
                 <div className="flex items-center gap-2 mb-4">
@@ -734,15 +734,15 @@ export default function Dashboard() {
                   </h2>
                   <p className="text-gray-600">Gerencie professores, coordenadores e funcionários da instituição.</p>
                 </div>
-                <Button 
+          <Button 
                   className="flex gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md" 
                   onClick={() => setShowAdd(true)}
-                >
+          >
                   <Plus className="w-5 h-5" />
                   Adicionar Colaborador
-                </Button>
-              </div>
-            </div>
+          </Button>
+        </div>
+      </div>
 
             {/* Cards com estatísticas resumidas de colaboradores por função */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
