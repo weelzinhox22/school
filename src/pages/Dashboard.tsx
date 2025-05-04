@@ -13,6 +13,9 @@ import GestaoTurmas from "@/components/dashboard/GestaoTurmas";
 import GestaoPermissoes from "@/components/dashboard/GestaoPermissoes";
 import GestaoRelatorios from "@/components/dashboard/GestaoRelatorios";
 import GestaoEventos from "@/components/dashboard/GestaoEventos";
+import GestaoRanking from "@/components/dashboard/GestaoRanking";
+import GestaoHistorico from "@/components/dashboard/GestaoHistorico";
+import GestaoSolicitacoes from "@/components/dashboard/GestaoSolicitacoes";
 
 const mockColaboradores = [
   { id: 1, nome: "Maria Silva", email: "maria@escola.com", tipo: "Coordenador", senha: "" },
@@ -1149,159 +1152,17 @@ export default function Dashboard() {
         )}
         {section === 'ranking' && (
           <motion.div key="ranking" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-6 flex items-center gap-2"><Award className="w-6 h-6" /> Ranking e Métricas de Desempenho</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Ranking de alunos */}
-              <div className="bg-white rounded-xl shadow p-6 flex flex-col">
-                <div className="flex items-center gap-2 mb-4"><TrendingUp className="w-5 h-5 text-indigo-500" /><span className="font-semibold text-indigo-700">Top Alunos</span></div>
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-indigo-700 text-xs">
-                      <th className="py-1">Nome</th>
-                      <th>Turma</th>
-                      <th>Nota</th>
-                      <th>Freq.</th>
-                      <th>Part.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockRankingAlunos.map((a, i) => (
-                      <tr key={a.nome} className={`border-b last:border-b-0 ${i === 0 ? 'bg-yellow-50 font-bold' : ''}`}>
-                        <td className="py-1">{a.nome}</td>
-                        <td>{a.turma}</td>
-                        <td>{a.nota}</td>
-                        <td>{a.frequencia}%</td>
-                        <td>{a.participacao}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {/* Ranking de turmas */}
-              <div className="bg-white rounded-xl shadow p-6 flex flex-col">
-                <div className="flex items-center gap-2 mb-4"><Users className="w-5 h-5 text-indigo-500" /><span className="font-semibold text-indigo-700">Top Turmas</span></div>
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-indigo-700 text-xs">
-                      <th className="py-1">Turma</th>
-                      <th>Média</th>
-                      <th>Freq.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockRankingTurmas.map((t, i) => (
-                      <tr key={t.turma} className={`border-b last:border-b-0 ${i === 0 ? 'bg-yellow-50 font-bold' : ''}`}>
-                        <td className="py-1">{t.turma}</td>
-                        <td>{t.media}</td>
-                        <td>{t.frequencia}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {/* Ranking de professores */}
-              <div className="bg-white rounded-xl shadow p-6 flex flex-col">
-                <div className="flex items-center gap-2 mb-4"><UserCog className="w-5 h-5 text-indigo-500" /><span className="font-semibold text-indigo-700">Top Professores</span></div>
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-indigo-700 text-xs">
-                      <th className="py-1">Nome</th>
-                      <th>Disciplina</th>
-                      <th>Média</th>
-                      <th>Part.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockRankingProfs.map((p, i) => (
-                      <tr key={p.nome} className={`border-b last:border-b-0 ${i === 0 ? 'bg-yellow-50 font-bold' : ''}`}>
-                        <td className="py-1">{p.nome}</td>
-                        <td>{p.disciplina}</td>
-                        <td>{p.media}</td>
-                        <td>{p.participacao}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <GestaoRanking />
           </motion.div>
         )}
         {section === 'historico' && (
           <motion.div key="historico" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-6 flex items-center gap-2"><Clock className="w-6 h-6" /> Histórico de Ações (Log de Auditoria)</h2>
-            {/*
-              // FUTURO: Buscar logs do backend
-              // Exemplo:
-              // useEffect(() => {
-              //   fetch('/api/logs').then(res => res.json()).then(setLogs);
-              // }, []);
-            */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-indigo-700">
-                    <th className="py-2">Usuário</th>
-                    <th>Ação</th>
-                    <th>Detalhe</th>
-                    <th>Data/Hora</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockLog.length === 0 ? (
-                    <tr><td colSpan={4} className="text-center py-4 text-gray-400">Nenhuma ação registrada.</td></tr>
-                  ) : mockLog.map(log => (
-                    <tr key={log.id} className="border-b last:border-b-0">
-                      <td className="py-2 font-medium">{log.usuario}</td>
-                      <td>{log.acao}</td>
-                      <td>{log.detalhe}</td>
-                      <td>{log.data}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <GestaoHistorico />
           </motion.div>
         )}
         {section === 'solicitacoes' && (
           <motion.div key="solicitacoes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-6 flex items-center gap-2"><Inbox className="w-6 h-6" /> Painel de Solicitações</h2>
-            <div className="bg-white rounded-xl shadow p-6">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-indigo-700">
-                    <th className="py-2">Tipo</th>
-                    <th>Solicitante</th>
-                    <th>Status</th>
-                    <th>Data</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {solicitacoes.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-4 text-gray-400">Nenhuma solicitação encontrada.</td></tr>
-                  ) : solicitacoes.map(s => (
-                    <tr key={s.id} className="border-b last:border-b-0">
-                      <td className="py-2 font-medium flex items-center gap-2"><FileText className="w-4 h-4 text-indigo-400" />{s.tipo}</td>
-                      <td>{s.solicitante}</td>
-                      <td>
-                        {s.status === "Aprovada" && <span className="inline-flex items-center gap-1 text-green-700 bg-green-100 rounded px-2 py-1 text-xs"><CheckCircle2 className="w-4 h-4" />Aprovada</span>}
-                        {s.status === "Rejeitada" && <span className="inline-flex items-center gap-1 text-red-700 bg-red-100 rounded px-2 py-1 text-xs"><XCircle className="w-4 h-4" />Rejeitada</span>}
-                        {s.status === "Pendente" && <span className="inline-flex items-center gap-1 text-yellow-800 bg-yellow-100 rounded px-2 py-1 text-xs">Pendente</span>}
-                      </td>
-                      <td>{s.data}</td>
-                      <td>
-                        {s.status === "Pendente" && (
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => aprovarSolicitacao(s.id)}>Aprovar</Button>
-                            <Button size="sm" variant="destructive" onClick={() => rejeitarSolicitacao(s.id)}>Rejeitar</Button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <GestaoSolicitacoes />
           </motion.div>
         )}
         </AnimatePresence>
