@@ -27,7 +27,7 @@ function Router() {
     } else if (location === "") {
       // Empty location, redirect to home
       setLocation("/");
-    }
+  }
   }, [location, setLocation]);
 
   return (
