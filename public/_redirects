@@ -2,4 +2,4 @@
 / /index.html 200!
 
 # Redirect all other paths to index.html for SPA routing
-/* /index.html 200! 
+/* /index.html 200 
