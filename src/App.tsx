@@ -20,11 +20,12 @@ function Router() {
 
   // Ensure we're always starting at the home page when the app loads
   useEffect(() => {
-    // If we're at the root path that's empty or just "/", ensure home component renders
-    if (location === "" || location === "/") {
+    // If we're at the root or a non-existent route, redirect to home
+    if (location === "/") {
+      // We're already at home, no need to redirect
       console.log("Application loaded at home page");
-    } else if (location === "/blank" || location === "/index.html") {
-      // Handle cases where it might load into blank or index
+    } else if (location === "") {
+      // Empty location, redirect to home
       setLocation("/");
     }
   }, [location, setLocation]);
@@ -42,9 +43,8 @@ function Router() {
       {/* Fallback for unknown routes - redirect to home */}
       <Route>
         {() => {
+          // Redirect to home for any unmatched route
           useEffect(() => {
-            // Redirect to home for any unmatched route
-            console.log("Unmatched route, redirecting to home");
             setLocation("/");
           }, []);
           return null;
