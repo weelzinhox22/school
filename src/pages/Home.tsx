@@ -22,7 +22,7 @@ export default function Home() {
   const [use3D, setUse3D] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [_, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   
   // Handle 3D rendering errors
   useEffect(() => {
@@ -67,9 +67,10 @@ export default function Home() {
         // Simulate redirect
         setTimeout(() => {
           if (result.user) {
-            navigate(`/dashboard/${result.user.role}`);
-          } else {
-            navigate('/');
+            const targetRoute = `/dashboard/${result.user.role}`;
+            if (location !== targetRoute) {
+              navigate(targetRoute);
+            }
           }
         }, 1500);
       } else {

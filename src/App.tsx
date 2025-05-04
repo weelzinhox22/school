@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Cadastro from "@/pages/Cadastro";
@@ -17,10 +18,17 @@ import { Toaster as HotToaster } from "react-hot-toast";
 function Router() {
   const [location, setLocation] = useLocation();
 
-  // Ensure we're always starting at the home page
-  if (!location || location === "/") {
-    return <Home />;
-  }
+  // Ensure we're always starting at the home page when the app loads
+  useEffect(() => {
+    // If we're at the root or a non-existent route, redirect to home
+    if (location === "/") {
+      // We're already at home, no need to redirect
+      console.log("Application loaded at home page");
+    } else if (location === "") {
+      // Empty location, redirect to home
+      setLocation("/");
+    }
+  }, [location, setLocation]);
 
   return (
     <Switch>
@@ -32,8 +40,16 @@ function Router() {
       <Route path="/financeiro" component={Financeiro} />
       <Route path="/documentacao" component={Documentacao} />
       <Route path="/alimentacao" component={Alimentacao} />
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
+      {/* Fallback for unknown routes - redirect to home */}
+      <Route>
+        {() => {
+          // Redirect to home for any unmatched route
+          useEffect(() => {
+            setLocation("/");
+          }, []);
+          return null;
+        }}
+      </Route>
     </Switch>
   );
 }
