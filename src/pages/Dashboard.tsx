@@ -508,7 +508,7 @@ export default function Dashboard() {
           <motion.div key="turmas" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} transition={{ duration: 0.4 }}>
             <h2 className="text-xl font-bold text-indigo-700 mb-6">Gestão de Turmas</h2>
             <div className="bg-white rounded-xl shadow p-6">
-              <p className="text-gray-600">Funcionalidade de gestão de turmas e alunos pode ser expandida aqui.</p>
+              <p className="text-gray-600">Funcionalidade em desenvolvimento.</p>
             </div>
           </motion.div>
         )}
