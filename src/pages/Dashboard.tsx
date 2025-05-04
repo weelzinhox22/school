@@ -9,11 +9,15 @@ import jsPDF from "jspdf";
 import Papa from "papaparse";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, parseISO } from "date-fns";
 import { useLocation } from "wouter";
+import GestaoTurmas from "@/components/dashboard/GestaoTurmas";
+import GestaoPermissoes from "@/components/dashboard/GestaoPermissoes";
+import GestaoRelatorios from "@/components/dashboard/GestaoRelatorios";
+import GestaoEventos from "@/components/dashboard/GestaoEventos";
 
 const mockColaboradores = [
-  { id: 1, nome: "Maria Silva", email: "maria@escola.com", tipo: "Coordenador" },
-  { id: 2, nome: "João Souza", email: "joao@escola.com", tipo: "Professor" },
-  { id: 3, nome: "Ana Lima", email: "ana@escola.com", tipo: "Professor" },
+  { id: 1, nome: "Maria Silva", email: "maria@escola.com", tipo: "Coordenador", senha: "" },
+  { id: 2, nome: "João Souza", email: "joao@escola.com", tipo: "Professor", senha: "" },
+  { id: 3, nome: "Ana Lima", email: "ana@escola.com", tipo: "Professor", senha: "" },
 ];
 
 const TURMAS = ["1A", "1B", "2A", "2B", "3A", "3B"];
@@ -165,6 +169,10 @@ export default function Dashboard() {
   const [solicitacoes, setSolicitacoes] = useState(mockSolicitacoes);
   const [, navigate] = useLocation();
 
+  // Estados para gerenciar edição e exclusão de colaboradores
+  const [colabEdit, setColabEdit] = useState<null | typeof mockColaboradores[0]>(null);
+  const [colabDelete, setColabDelete] = useState<null | number>(null);
+
   // Simulação de dados do usuário logado
   const user = {
     name: "Diretor Teste",
@@ -227,8 +235,36 @@ export default function Dashboard() {
 
   // Remover colaborador
   function handleRemoveColab(id: number) {
-    setColaboradores(colaboradores.filter(c => c.id !== id));
-    toast.success("Colaborador removido!");
+    // Em vez de remover diretamente, mostrar confirmação
+    setColabDelete(id);
+  }
+
+  // Função para confirmar a exclusão
+  function confirmarExclusaoColab() {
+    if (colabDelete !== null) {
+      setColaboradores(colaboradores.filter(c => c.id !== colabDelete));
+      setColabDelete(null);
+      toast.success("Colaborador removido com sucesso!");
+    }
+  }
+
+  // Função para abrir o modal de edição
+  function handleEditColab(colab: typeof mockColaboradores[0]) {
+    // Cria uma cópia do colaborador para edição
+    setColabEdit({...colab, senha: ""});
+  }
+
+  // Função para salvar a edição
+  function handleSaveColabEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (colabEdit) {
+      setColaboradores(
+        colaboradores.map(c => c.id === colabEdit.id ? 
+          {...colabEdit, senha: colabEdit.senha || c.senha} : c)
+      );
+      setColabEdit(null);
+      toast.success("Colaborador atualizado com sucesso!");
+    }
   }
 
   function handleEnviarNotificacao(e: React.FormEvent) {
@@ -400,310 +436,715 @@ export default function Dashboard() {
         <AnimatePresence mode="wait">
         {section === 'visao' && (
           <motion.div key="visao" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            {/* Cards de resumo */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              {[320, 3, 8, 24].map((val, i) => (
-                <motion.div key={i} custom={i} variants={cardVariants} initial="hidden" animate="visible" className="bg-indigo-100 rounded-xl p-6 flex flex-col items-center shadow-lg hover:scale-105 hover:shadow-2xl transition-transform cursor-pointer">
-                  {i === 0 && <Users className="w-8 h-8 text-indigo-600 mb-2" />}
-                  {i === 1 && <UserCog className="w-8 h-8 text-indigo-600 mb-2" />}
-                  {i === 2 && <BookOpen className="w-8 h-8 text-indigo-600 mb-2" />}
-                  {i === 3 && <Users className="w-8 h-8 text-indigo-600 mb-2" />}
-                  <span className="text-3xl font-bold text-indigo-700">{val}</span>
-                  <span className="text-gray-600 mt-1">{["Alunos", "Coordenadores", "Turmas", "Professores"][i]}</span>
-                </motion.div>
-              ))}
+            {/* Cabeçalho da seção - Título e descrição que contextualizam a visão geral para o diretor */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                <BarChart2 className="w-6 h-6 text-indigo-600" />
+                Visão Geral da Instituição
+              </h2>
+              <p className="text-gray-600">Acompanhe os principais indicadores da escola em tempo real.</p>
             </div>
-            {/* Gráfico de notas médias */}
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bg-white rounded-xl shadow p-6 mb-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
-                <h2 className="text-xl font-bold text-indigo-700">Notas médias por turma/turno</h2>
-                <div className="flex gap-2 items-center">
-                  <select className="border rounded px-2 py-1" value={turnoSelecionado} onChange={e => setTurnoSelecionado(e.target.value)} disabled={compareTurnos}>
-                    {TURNOS.map(turno => <option key={turno} value={turno}>{turno}</option>)}
+            
+            {/* Cards de estatísticas principais - Exibem os números essenciais da escola de forma visualmente atraente
+                Cada card é um componente motion que usa a animação definida em cardVariants para entrada suave na tela
+                As cores diferentes ajudam na identificação visual rápida de cada categoria */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {/* Card de Alunos - Exibe o total de alunos e tendência de crescimento */}
+              <motion.div 
+                custom={0} 
+                variants={cardVariants} 
+                initial="hidden" 
+                animate="visible" 
+                className="bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-xl p-6 flex flex-col shadow-lg hover:shadow-xl transition-all duration-300 border border-indigo-100"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-indigo-600 rounded-lg shadow-md">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full">Total</span>
+                </div>
+                <span className="text-3xl font-bold text-indigo-700 mb-1">320</span>
+                <span className="text-gray-600">Alunos matriculados</span>
+                <div className="mt-3 flex items-center text-xs text-green-600">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  <span>Aumento de 12% desde o último mês</span>
+                </div>
+              </motion.div>
+              
+              {/* Card de Coordenadores - Exibe o total e a proporção coordenador/turma */}
+              <motion.div 
+                custom={1} 
+                variants={cardVariants} 
+                initial="hidden" 
+                animate="visible" 
+                className="bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl p-6 flex flex-col shadow-lg hover:shadow-xl transition-all duration-300 border border-amber-100"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-amber-500 rounded-lg shadow-md">
+                    <UserCog className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded-full">Equipe</span>
+                </div>
+                <span className="text-3xl font-bold text-amber-700 mb-1">3</span>
+                <span className="text-gray-600">Coordenadores</span>
+                <div className="mt-3 flex items-center text-xs text-amber-600">
+                  <Users className="w-3 h-3 mr-1" />
+                  <span>1 coordenador para cada 3 turmas</span>
+                </div>
+              </motion.div>
+              
+              {/* Card de Turmas - Exibe o total de turmas e média de alunos por turma */}
+              <motion.div 
+                custom={2} 
+                variants={cardVariants} 
+                initial="hidden" 
+                animate="visible" 
+                className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl p-6 flex flex-col shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-100"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-blue-600 rounded-lg shadow-md">
+                    <BookOpen className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full">Ativas</span>
+                </div>
+                <span className="text-3xl font-bold text-blue-700 mb-1">8</span>
+                <span className="text-gray-600">Turmas ativas</span>
+                <div className="mt-3 flex items-center text-xs text-blue-600">
+                  <Users className="w-3 h-3 mr-1" />
+                  <span>Média de 40 alunos por turma</span>
+                </div>
+              </motion.div>
+              
+              {/* Card de Professores - Exibe o total de professores e a proporção professor/turma */}
+              <motion.div 
+                custom={3} 
+                variants={cardVariants} 
+                initial="hidden" 
+                animate="visible" 
+                className="bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-xl p-6 flex flex-col shadow-lg hover:shadow-xl transition-all duration-300 border border-emerald-100"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-emerald-600 rounded-lg shadow-md">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">Ativos</span>
+                </div>
+                <span className="text-3xl font-bold text-emerald-700 mb-1">24</span>
+                <span className="text-gray-600">Professores</span>
+                <div className="mt-3 flex items-center text-xs text-emerald-600">
+                  <BookOpen className="w-3 h-3 mr-1" />
+                  <span>3 professores por turma em média</span>
+                </div>
+              </motion.div>
+            </div>
+            
+            {/* Gráfico de desempenho acadêmico - Visualização interativa das médias por turma/turno
+                Usa ResponsiveContainer do Recharts para ajustar automaticamente o tamanho do gráfico
+                O usuário pode selecionar turnos específicos ou comparar turnos conforme necessário */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              transition={{ delay: 0.2 }} 
+              className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100"
+            >
+              {/* Cabeçalho do gráfico com título informativo e controles de filtro */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-indigo-700 mb-1 flex items-center gap-2">
+                    <BarChart2 className="w-5 h-5 text-indigo-500" />
+                    Desempenho Acadêmico
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Médias de notas por turma {compareTurnos ? 'comparando turnos' : `no turno da ${turnoSelecionado}`}
+                  </p>
+                </div>
+                
+                {/* Controles do gráfico - Permitem filtrar dados e alterar a visualização
+                    Seletor de turno fica desabilitado quando a comparação de turnos está ativa */}
+                <div className="flex gap-3 items-center bg-indigo-50 p-2 rounded-lg">
+                  <select 
+                    className="border border-indigo-200 rounded-lg px-3 py-1 text-sm bg-white shadow-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none" 
+                    value={turnoSelecionado} 
+                    onChange={e => setTurnoSelecionado(e.target.value)} 
+                    disabled={compareTurnos}
+                  >
+                    {TURNOS.map(turno => (
+                      <option key={turno} value={turno}>{turno}</option>
+                    ))}
                   </select>
-                  <label className="flex items-center gap-1 text-sm cursor-pointer select-none">
-                    <input type="checkbox" checked={compareTurnos} onChange={e => setCompareTurnos(e.target.checked)} className="accent-indigo-500" />
-                    Comparar turnos
+                  
+                  <label className="flex items-center gap-2 text-sm cursor-pointer select-none bg-white px-3 py-1 rounded-lg border border-indigo-200 shadow-sm">
+                    <input 
+                      type="checkbox" 
+                      checked={compareTurnos} 
+                      onChange={e => setCompareTurnos(e.target.checked)} 
+                      className="accent-indigo-500 w-4 h-4" 
+                    />
+                    <span className="text-indigo-700 font-medium">Comparar turnos</span>
                   </label>
-          </div>
-        </div>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="turma" />
-                  <YAxis domain={[0, 10]} />
-                  <Tooltip />
-                  <Legend />
-                  {compareTurnos ? (
-                    <>
-                      <Bar dataKey="Manhã" fill={TURNO_COLORS["Manhã"]} radius={[8, 8, 0, 0]} />
-                      <Bar dataKey="Tarde" fill={TURNO_COLORS["Tarde"]} radius={[8, 8, 0, 0]} />
-                    </>
-                  ) : (
-                    chartData.map((d, i) => (
-                      d.media !== null && <Bar key={d.turma} dataKey="media" data={[d]} name={d.turma} fill={d.color} radius={[8, 8, 0, 0]} xAxisId={0} />
-                    ))
-                  )}
-                </BarChart>
-              </ResponsiveContainer>
+                </div>
+              </div>
+              
+              {/* Gráfico de barras Recharts - Renderiza os dados das médias de forma visual 
+                  Possui animações, formatação personalizada nos eixos e tooltips melhoradas */}
+              <div className="mt-2">
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="turma" 
+                      tick={{ fill: '#4B5563' }}
+                      axisLine={{ stroke: '#E5E7EB' }}
+                      tickLine={{ stroke: '#E5E7EB' }}
+                    />
+                    <YAxis 
+                      domain={[0, 10]} 
+                      tick={{ fill: '#4B5563' }}
+                      axisLine={{ stroke: '#E5E7EB' }}
+                      tickLine={{ stroke: '#E5E7EB' }}
+                      tickFormatter={(value) => `${value.toFixed(1)}`}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        borderRadius: '8px',
+                        border: '1px solid #E5E7EB',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                      formatter={(value) => [`${Number(value).toFixed(1)}`, 'Média']}
+                    />
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '10px' }}
+                      formatter={(value) => <span className="text-sm font-medium">{value}</span>}
+                    />
+                    {/* Renderização condicional das barras com base no modo selecionado (turnos específicos ou comparação) */}
+                    {compareTurnos ? (
+                      <>
+                        <Bar 
+                          dataKey="Manhã" 
+                          fill={TURNO_COLORS["Manhã"]} 
+                          radius={[4, 4, 0, 0]} 
+                          barSize={30}
+                          animationDuration={1500}
+                          name="Turno Manhã"
+                        />
+                        <Bar 
+                          dataKey="Tarde" 
+                          fill={TURNO_COLORS["Tarde"]} 
+                          radius={[4, 4, 0, 0]} 
+                          barSize={30}
+                          animationDuration={1500}
+                          name="Turno Tarde"
+                        />
+                      </>
+                    ) : (
+                      chartData.map((d, i) => (
+                        d.media !== null && (
+                          <Bar 
+                            key={d.turma} 
+                            dataKey="media" 
+                            data={[d]} 
+                            name={d.turma} 
+                            fill={d.color} 
+                            radius={[4, 4, 0, 0]} 
+                            xAxisId={0}
+                            barSize={40}
+                            animationDuration={1200 + (i * 100)}
+                          />
+                        )
+                      ))
+                    )}
+                  </BarChart>
+                </ResponsiveContainer>
+                
+                {/* Legenda explicativa adicional - Fornece contexto para interpretar os dados */}
+                <div className="flex justify-end mt-3 text-xs text-gray-500">
+                  <div className="flex items-center">
+                    <span className="font-medium">Nota: </span>
+                    <span className="ml-1">O gráfico exibe a média de desempenho acadêmico baseada nas avaliações do período atual.</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Indicadores de desempenho adicionais - Complementam a visão geral com métricas específicas
+                Organizados em uma grade responsiva que adapta de 1 a 3 colunas conforme o tamanho da tela */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+            >
+              {/* Indicador de taxa de aprovação - Mostra o percentual atual e comparação com período anterior */}
+              <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  </div>
+                  <span className="font-medium text-gray-700">Taxa de Aprovação</span>
+                </div>
+                <div className="text-3xl font-bold text-green-600 mb-2">92%</div>
+                <div className="text-xs text-gray-500">
+                  Comparado a 87% no semestre anterior
+                </div>
+              </div>
+              
+              {/* Indicador de frequência média - Mostra o percentual de presença nas últimas semanas */}
+              <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <CalendarDays className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className="font-medium text-gray-700">Frequência Média</span>
+                </div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">95%</div>
+                <div className="text-xs text-gray-500">
+                  Nas últimas 4 semanas de aula
+                </div>
+              </div>
+              
+              {/* Indicador de média geral - Mostra a nota média de todas as turmas e a variação recente */}
+              <div className="bg-white rounded-xl shadow p-5 border border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Award className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <span className="font-medium text-gray-700">Média Geral</span>
+                </div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">7.6</div>
+                <div className="text-xs text-gray-500">
+                  Aumento de 0.3 pontos desde a última avaliação
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
         {section === 'colaboradores' && (
           <motion.div key="colaboradores" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} transition={{ duration: 0.4 }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-indigo-700">Colaboradores</h2>
-              <Button className="flex gap-2" onClick={() => setShowAdd(true)}><Plus className="w-5 h-5" />Adicionar</Button>
-            </div>
-            <div className="bg-white rounded-xl shadow p-6">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-indigo-700">
-                    <th className="py-2">Nome</th>
-                    <th>Email</th>
-                    <th>Tipo</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {colaboradores.map(colab => (
-                    <tr key={colab.id} className="border-b last:border-b-0">
-                      <td className="py-2 font-medium cursor-pointer hover:underline" title="Ver detalhes">{colab.nome}</td>
-                      <td>{colab.email}</td>
-                      <td>{colab.tipo}</td>
-                      <td>
-                        <Button size="sm" variant="destructive" onClick={() => handleRemoveColab(colab.id)}><Trash2 className="w-4 h-4" /></Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* Modal de adicionar colaborador (com senha) */}
-            <AnimatePresence>
-            {showAdd && (
-              <motion.div key="modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                <motion.div initial={{ scale: 0.9, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 40 }} transition={{ type: "spring", stiffness: 120 }} className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
-                  <h3 className="text-lg font-bold mb-4">Adicionar Colaborador</h3>
-                  <form onSubmit={handleAddColab} className="flex flex-col gap-4">
-                    <input className="border rounded px-3 py-2" placeholder="Nome" required value={novoColab.nome} onChange={e => setNovoColab({ ...novoColab, nome: e.target.value })} />
-                    <input className="border rounded px-3 py-2" placeholder="Email" required value={novoColab.email} onChange={e => setNovoColab({ ...novoColab, email: e.target.value })} />
-                    <select className="border rounded px-3 py-2" value={novoColab.tipo} onChange={e => setNovoColab({ ...novoColab, tipo: e.target.value })}>
-                      <option>Coordenador</option>
-                      <option>Professor</option>
-                    </select>
-                    <input className="border rounded px-3 py-2" placeholder="Senha de acesso" type="password" required value={novoColab.senha} onChange={e => setNovoColab({ ...novoColab, senha: e.target.value })} />
-                    <div className="flex gap-2 justify-end">
-                      <Button type="button" variant="outline" onClick={() => setShowAdd(false)}>Cancelar</Button>
-                      <Button type="submit">Salvar</Button>
-                    </div>
-                  </form>
-                </motion.div>
-              </motion.div>
-            )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-        {section === 'turmas' && (
-          <motion.div key="turmas" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} transition={{ duration: 0.4 }}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-6">Gestão de Turmas</h2>
-            <div className="bg-white rounded-xl shadow p-6">
-              <p className="text-gray-600">Funcionalidade em desenvolvimento.</p>
-            </div>
-          </motion.div>
-        )}
-        {section === 'permissoes' && (
-          <motion.div key="permissoes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-6">Gestão de Permissões</h2>
-            <div className="bg-white rounded-xl shadow p-6">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-indigo-700">
-                    <th className="py-2">Nome</th>
-                    <th>Tipo</th>
-                    <th>Permissões</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {permissoes.map(colab => (
-                    <tr key={colab.id} className="border-b last:border-b-0">
-                      <td className="py-2 font-medium">{colab.nome}</td>
-                      <td>{colab.tipo}</td>
-                      <td className="text-xs">
-                        {Object.entries(PERMISSOES_LABELS).map(([key, label]) => (
-                          colab.permissoes[key as PermKey] && <span key={key} className="inline-block bg-indigo-100 text-indigo-700 rounded px-2 py-1 mr-1 mb-1">{label}</span>
-                        ))}
-                      </td>
-                      <td>
-                        <Button size="sm" variant="outline" onClick={() => setColabPerm({ ...colab, permissoes: { ...colab.permissoes } })}>Editar</Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* Modal editar permissões */}
-            <AnimatePresence>
-              {colabPerm && (
-                <motion.div key="modal-perm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                  <motion.div initial={{ scale: 0.95, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 30 }} transition={{ type: "spring", stiffness: 120 }} className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
-                    <h3 className="text-lg font-bold mb-4">Permissões de {colabPerm.nome}</h3>
-                    <div className="flex flex-col gap-3 mb-6">
-                      {Object.entries(PERMISSOES_LABELS).map(([key, label]) => (
-                        <div key={key} className="flex items-center justify-between">
-                          <span>{label}</span>
-                          <Switch
-                            checked={colabPerm.permissoes[key as PermKey]}
-                            onChange={(v: boolean) => setColabPerm(c => c ? { ...c, permissoes: { ...c.permissoes, [key]: v } } : c)}
-                            className={`${colabPerm.permissoes[key as PermKey] ? 'bg-indigo-600' : 'bg-gray-200'} relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
-                          >
-                            <span className="sr-only">Toggle {label}</span>
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${colabPerm.permissoes[key as PermKey] ? 'translate-x-6' : 'translate-x-1'}`}/>
-                          </Switch>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button type="button" variant="outline" onClick={() => setColabPerm(null)}>Cancelar</Button>
-                      <Button type="button" onClick={handleSalvarPermissoes}>Salvar</Button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-        {section === 'relatorios' && (
-          <motion.div key="relatorios" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-6">Relatórios Personalizados</h2>
-            <div className="bg-white rounded-xl shadow p-6 mb-6">
-              <div className="flex flex-col md:flex-row gap-4 mb-4">
-                <select className="border rounded px-3 py-2" value={filtroTurma} onChange={e => setFiltroTurma(e.target.value)}>
-                  <option value="">Todas as turmas</option>
-                  {TURMAS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <select className="border rounded px-3 py-2" value={filtroDisciplina} onChange={e => setFiltroDisciplina(e.target.value)}>
-                  <option value="">Todas as disciplinas</option>
-                  {DISCIPLINAS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <select className="border rounded px-3 py-2" value={filtroPeriodo} onChange={e => setFiltroPeriodo(e.target.value)}>
-                  <option value="">Todos os períodos</option>
-                  {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-                <Button onClick={exportarCSV} variant="outline">Exportar CSV</Button>
-                <Button onClick={exportarPDF} variant="outline">Exportar PDF</Button>
+            {/* Cabeçalho da seção de Colaboradores com título e botão de adicionar */}
+            <div className="mb-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                    <Users className="w-6 h-6 text-indigo-600" />
+                    Gestão de Colaboradores
+                  </h2>
+                  <p className="text-gray-600">Gerencie professores, coordenadores e funcionários da instituição.</p>
+                </div>
+                <Button 
+                  className="flex gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md" 
+                  onClick={() => setShowAdd(true)}
+                >
+                  <Plus className="w-5 h-5" />
+                  Adicionar Colaborador
+                </Button>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-t">
+            </div>
+
+            {/* Cards com estatísticas resumidas de colaboradores por função */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {/* Card de Professores */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.1 }}
+                className="bg-white rounded-xl p-4 border border-gray-100 shadow flex items-center gap-4"
+              >
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <BookOpen className="w-6 h-6 text-blue-700" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Professores</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {colaboradores.filter(c => c.tipo === "Professor").length}
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Card de Coordenadores */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-xl p-4 border border-gray-100 shadow flex items-center gap-4"
+              >
+                <div className="p-3 bg-amber-100 rounded-lg">
+                  <UserCog className="w-6 h-6 text-amber-700" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Coordenadores</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {colaboradores.filter(c => c.tipo === "Coordenador").length}
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Card do total de colaboradores */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.3 }}
+                className="bg-white rounded-xl p-4 border border-gray-100 shadow flex items-center gap-4"
+              >
+                <div className="p-3 bg-indigo-100 rounded-lg">
+                  <Users className="w-6 h-6 text-indigo-700" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total de Colaboradores</p>
+                  <p className="text-2xl font-bold text-gray-800">{colaboradores.length}</p>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Tabela principal de colaboradores com filtro de busca */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.2 }} 
+              className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+            >
+              {/* Barra de filtro/busca simulada */}
+              <div className="border-b border-gray-100 p-4 bg-gray-50">
+                <div className="flex items-center gap-2 text-gray-400 bg-white border border-gray-200 rounded-lg p-2 px-3 shadow-sm w-full max-w-md">
+                  <BookOpen className="w-4 h-4" />
+                  <span className="text-sm">Buscar colaboradores por nome, email ou função...</span>
+                </div>
+              </div>
+
+              {/* Tabela com lista de colaboradores */}
+              <div className="p-6">
+                <table className="w-full text-left">
                   <thead>
-                    <tr className="text-indigo-700">
-                      <th className="py-2">Aluno</th>
-                      <th>Turma</th>
-                      <th>Disciplina</th>
-                      <th>Período</th>
-                      <th>Nota</th>
-                      <th>Faltas</th>
+                    <tr className="border-b border-gray-200">
+                      <th className="py-3 font-semibold text-gray-700">Nome</th>
+                      <th className="py-3 font-semibold text-gray-700">Email</th>
+                      <th className="py-3 font-semibold text-gray-700">Função</th>
+                      <th className="py-3 font-semibold text-gray-700">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {dadosRelatorio.length === 0 ? (
-                      <tr><td colSpan={6} className="text-center py-4 text-gray-400">Nenhum dado encontrado.</td></tr>
-                    ) : dadosRelatorio.map((r, i) => (
-                      <tr key={i} className="border-b last:border-b-0">
-                        <td className="py-2 font-medium">{r.aluno}</td>
-                        <td>{r.turma}</td>
-                        <td>{r.disciplina}</td>
-                        <td>{r.periodo}</td>
-                        <td>{r.nota}</td>
-                        <td>{r.faltas}</td>
+                    {colaboradores.map(colab => (
+                      <tr key={colab.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
+                        <td className="py-3 font-medium text-indigo-700 cursor-pointer hover:underline flex items-center gap-2" title="Ver detalhes">
+                          {colab.tipo === "Coordenador" ? 
+                            <UserCog className="w-5 h-5 text-amber-600" /> : 
+                            <BookOpen className="w-5 h-5 text-blue-600" />
+                          }
+                          {colab.nome}
+                        </td>
+                        <td className="py-3 text-gray-600">{colab.email}</td>
+                        <td className="py-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            colab.tipo === "Coordenador" 
+                              ? "bg-amber-100 text-amber-700" 
+                              : "bg-blue-100 text-blue-700"
+                          }`}>
+                            {colab.tipo}
+                          </span>
+                        </td>
+                        <td className="py-3">
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                              onClick={() => handleEditColab(colab)}
+                            >
+                              Editar
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              onClick={() => handleRemoveColab(colab.id)}
+                              className="bg-red-100 hover:bg-red-200 text-red-700 border-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+
+                {/* Mensagem quando não há colaboradores */}
+                {colaboradores.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p>Nenhum colaborador cadastrado.</p>
+                    <p className="text-sm">Clique no botão "Adicionar Colaborador" para começar.</p>
+                  </div>
+                )}
               </div>
-            </div>
-          </motion.div>
-        )}
-        {section === 'eventos' && (
-          <motion.div key="eventos" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-6 flex items-center gap-2"><CalendarDays className="w-6 h-6" /> Gestão de Eventos e Calendário Escolar</h2>
-            <div className="bg-white rounded-xl shadow p-6 mb-6 flex flex-col md:flex-row gap-8">
-              {/* Calendário visual */}
-              <div className="w-full md:w-2/3">
-                <div className="flex items-center justify-between mb-2">
-                  <button onClick={() => setMesAtual(subMonths(mesAtual, 1))} className="text-indigo-600 hover:underline">{format(subMonths(mesAtual, 1), "MMM yyyy")}</button>
-                  <span className="font-semibold text-lg">{format(mesAtual, "MMMM yyyy")}</span>
-                  <button onClick={() => setMesAtual(addMonths(mesAtual, 1))} className="text-indigo-600 hover:underline">{format(addMonths(mesAtual, 1), "MMM yyyy")}</button>
-                </div>
-                <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-indigo-700 mb-1">
-                  {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(d => <div key={d}>{d}</div>)}
-                </div>
-                {/* Dias do mês */}
-                <div className="grid grid-cols-7 gap-1">
-                  {(() => {
-                    const start = startOfWeek(startOfMonth(mesAtual), { weekStartsOn: 0 });
-                    const end = endOfWeek(endOfMonth(mesAtual), { weekStartsOn: 0 });
-                    const days = [];
-                    let day = start;
-                    while (day <= end) {
-                      const isCurrentMonth = isSameMonth(day, mesAtual);
-                      const isToday = isSameDay(day, new Date());
-                      const eventosDia = eventos.filter(e => isSameDay(parseISO(e.data), day));
-                      days.push(
-                        <div key={day.toString()} className={`rounded-lg p-1 h-10 flex flex-col items-center justify-center border ${isCurrentMonth ? 'bg-indigo-50' : 'bg-gray-50'} ${isToday ? 'border-indigo-400' : 'border-gray-200'} ${eventosDia.length ? 'ring-2 ring-indigo-400' : ''}`}> 
-                          <span className={`text-xs ${isCurrentMonth ? 'text-indigo-900' : 'text-gray-400'} ${isToday ? 'font-bold' : ''}`}>{format(day, "d")}</span>
-                          {eventosDia.length > 0 && <span className="w-2 h-2 rounded-full bg-indigo-500 mt-1"></span>}
-                        </div>
-                      );
-                      day = addDays(day, 1);
-                    }
-                    return days;
-                  })()}
-                </div>
-              </div>
-              {/* Lista de eventos do mês */}
-              <div className="w-full md:w-1/3 flex flex-col gap-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-indigo-700">Eventos do mês</span>
-                  <button className="flex items-center gap-1 text-indigo-600 hover:underline" onClick={() => setShowAddEvento(true)}><PlusCircle className="w-5 h-5" />Adicionar</button>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {eventosMes.length === 0 ? (
-                    <span className="text-gray-400 text-sm">Nenhum evento neste mês.</span>
-                  ) : eventosMes.map(ev => (
-                    <div key={ev.id} className="flex items-center justify-between bg-indigo-50 rounded-lg px-3 py-2">
-                      <div>
-                        <div className="font-medium text-indigo-800 text-sm">{ev.titulo}</div>
-                        <div className="text-xs text-gray-500">{format(parseISO(ev.data), "dd/MM/yyyy")} • {ev.tipo}</div>
-                      </div>
-                      <button onClick={() => handleRemoveEvento(ev.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            {/* Modal adicionar evento */}
+            </motion.div>
+
+            {/* Modal para adicionar colaborador - Ativado quando showAdd é true */}
             <AnimatePresence>
-              {showAddEvento && (
-                <motion.div key="modal-evento" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                  <motion.div initial={{ scale: 0.95, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 30 }} transition={{ type: "spring", stiffness: 120 }} className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
-                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><Calendar className="w-5 h-5" />Novo Evento</h3>
-                    <form onSubmit={handleAddEvento} className="flex flex-col gap-4">
-                      <input className="border rounded px-3 py-2" placeholder="Título do evento" required value={novoEvento.titulo} onChange={e => setNovoEvento({ ...novoEvento, titulo: e.target.value })} />
-                      <input className="border rounded px-3 py-2" type="date" required value={novoEvento.data} onChange={e => setNovoEvento({ ...novoEvento, data: e.target.value })} />
-                      <select className="border rounded px-3 py-2" value={novoEvento.tipo} onChange={e => setNovoEvento({ ...novoEvento, tipo: e.target.value })}>
-                        {TIPO_EVENTO.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <div className="flex gap-2 justify-end">
-                        <Button type="button" variant="outline" onClick={() => setShowAddEvento(false)}>Cancelar</Button>
-                        <Button type="submit">Salvar</Button>
+              {showAdd && (
+                <motion.div 
+                  key="modal" 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0 }} 
+                  className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.9, y: 40 }} 
+                    animate={{ scale: 1, y: 0 }} 
+                    exit={{ scale: 0.9, y: 40 }} 
+                    transition={{ type: "spring", stiffness: 120 }} 
+                    className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md border border-gray-200"
+                  >
+                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-indigo-800">
+                      <Users className="w-6 h-6 text-indigo-600" />
+                      Adicionar Colaborador
+                    </h3>
+
+                    {/* Formulário de cadastro de colaborador */}
+                    <form onSubmit={handleAddColab} className="flex flex-col gap-4">
+                      {/* Campo de Nome */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                        <input 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          placeholder="Ex: Maria Silva" 
+                          required 
+                          value={novoColab.nome} 
+                          onChange={e => setNovoColab({ ...novoColab, nome: e.target.value })} 
+                        />
+                      </div>
+
+                      {/* Campo de Email */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Institucional</label>
+                        <input 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          placeholder="Ex: maria@escola.com" 
+                          type="email"
+                          required 
+                          value={novoColab.email} 
+                          onChange={e => setNovoColab({ ...novoColab, email: e.target.value })} 
+                        />
+                      </div>
+
+                      {/* Campo de Tipo/Função */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Função na Instituição</label>
+                        <select 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          value={novoColab.tipo} 
+                          onChange={e => setNovoColab({ ...novoColab, tipo: e.target.value })}
+                        >
+                          <option value="Coordenador">Coordenador</option>
+                          <option value="Professor">Professor</option>
+                        </select>
+                      </div>
+
+                      {/* Campo de Senha */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Senha de Acesso</label>
+                        <input 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          placeholder="Mínimo 6 caracteres" 
+                          type="password" 
+                          required 
+                          value={novoColab.senha} 
+                          onChange={e => setNovoColab({ ...novoColab, senha: e.target.value })} 
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          A senha será enviada ao colaborador por email.
+                        </p>
+                      </div>
+
+                      {/* Botões de ação do modal */}
+                      <div className="flex gap-2 justify-end mt-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setShowAdd(false)}
+                          className="border-gray-300"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          type="submit"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                          Salvar Colaborador
+                        </Button>
                       </div>
                     </form>
                   </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Modal para editar colaborador */}
+            <AnimatePresence>
+              {colabEdit && (
+                <motion.div 
+                  key="modal-edit" 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0 }} 
+                  className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.9, y: 40 }} 
+                    animate={{ scale: 1, y: 0 }} 
+                    exit={{ scale: 0.9, y: 40 }} 
+                    transition={{ type: "spring", stiffness: 120 }} 
+                    className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md border border-gray-200"
+                  >
+                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-indigo-800">
+                      <UserCog className="w-6 h-6 text-indigo-600" />
+                      Editar Colaborador
+                    </h3>
+
+                    {/* Formulário de edição de colaborador */}
+                    <form onSubmit={handleSaveColabEdit} className="flex flex-col gap-4">
+                      {/* Campo de Nome */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                        <input 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          required 
+                          value={colabEdit.nome} 
+                          onChange={e => setColabEdit({...colabEdit, nome: e.target.value})} 
+                        />
+                      </div>
+
+                      {/* Campo de Email */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Institucional</label>
+                        <input 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          type="email"
+                          required 
+                          value={colabEdit.email} 
+                          onChange={e => setColabEdit({...colabEdit, email: e.target.value})} 
+                        />
+                      </div>
+
+                      {/* Campo de Tipo/Função */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Função na Instituição</label>
+                        <select 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          value={colabEdit.tipo} 
+                          onChange={e => setColabEdit({...colabEdit, tipo: e.target.value})}
+                        >
+                          <option value="Coordenador">Coordenador</option>
+                          <option value="Professor">Professor</option>
+                        </select>
+                      </div>
+
+                      {/* Campo de Senha (opcional durante edição) */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nova Senha (opcional)</label>
+                        <input 
+                          className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" 
+                          placeholder="Deixe em branco para manter a senha atual" 
+                          type="password" 
+                          value={colabEdit.senha || ""} 
+                          onChange={e => setColabEdit({...colabEdit, senha: e.target.value})} 
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Preencha apenas se desejar alterar a senha atual.
+                        </p>
+                      </div>
+
+                      {/* Botões de ação do modal */}
+                      <div className="flex gap-2 justify-end mt-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setColabEdit(null)}
+                          className="border-gray-300"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          type="submit"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                          Salvar Alterações
+                        </Button>
+                      </div>
+                    </form>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* Modal de confirmação de exclusão */}
+              {colabDelete !== null && (
+                <motion.div 
+                  key="modal-delete" 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0 }} 
+                  className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.9, y: 20 }} 
+                    animate={{ scale: 1, y: 0 }} 
+                    exit={{ scale: 0.9, y: 20 }} 
+                    transition={{ type: "spring", stiffness: 120 }} 
+                    className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm border border-gray-200"
+                  >
+                    <div className="text-center mb-5">
+                      <div className="mx-auto w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                        <AlertTriangle className="w-6 h-6 text-red-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">
+                        Confirmar Exclusão
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Você realmente deseja excluir este colaborador? Esta ação não pode ser desfeita.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setColabDelete(null)}
+                        className="border-gray-300 text-gray-700"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        type="button"
+                        onClick={confirmarExclusaoColab}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Sim, Excluir
+                      </Button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+        {section === 'turmas' && (
+          <motion.div key="turmas" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} transition={{ duration: 0.4 }}>
+            <GestaoTurmas />
+          </motion.div>
+        )}
+        {section === 'permissoes' && (
+          <motion.div key="permissoes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
+            <GestaoPermissoes />
+          </motion.div>
+        )}
+        {section === 'relatorios' && (
+          <motion.div key="relatorios" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
+            <GestaoRelatorios />
+          </motion.div>
+        )}
+        {section === 'eventos' && (
+          <motion.div key="eventos" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
+            <GestaoEventos />
           </motion.div>
         )}
         {section === 'ranking' && (
@@ -781,8 +1222,8 @@ export default function Dashboard() {
                     ))}
                   </tbody>
                 </table>
-        </div>
-      </div>
+              </div>
+            </div>
           </motion.div>
         )}
         {section === 'historico' && (
