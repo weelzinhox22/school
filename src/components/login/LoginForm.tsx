@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { loginSchema } from "@shared/schema";
+import { loginSchema } from "@/shared/schema";
 import { z } from "zod";
 import { BookOpen, Users, UserCog, Mail, Lock } from "lucide-react";
 import FloatingLabelInput from "./FloatingLabelInput";
