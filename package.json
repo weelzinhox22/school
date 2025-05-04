@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build --outDir dist",
+    "postbuild": "node fix-vercel-build.cjs",
     "preview": "vite preview"
   },
   "dependencies": {
