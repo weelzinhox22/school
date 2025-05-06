@@ -17,6 +17,7 @@ import TurmasAlunosDashboard from "@/components/dashboard/TurmasAlunosDashboard"
 import EventosAcademicosDashboard from "@/components/dashboard/EventosAcademicosDashboard";
 import RelatoriosAcademicosDashboard from "@/components/dashboard/RelatoriosAcademicosDashboard";
 import ComunicacaoEscolarDashboard from "@/components/dashboard/ComunicacaoEscolarDashboard";
+import AcompanhamentoPedagogico from "@/components/dashboard/AcompanhamentoPedagogico";
 
 // Mock de dados para o painel do coordenador
 const TURMAS = ["1A", "1B", "2A", "2B", "3A", "3B"];
@@ -193,66 +194,77 @@ export default function CoordenadorDashboard() {
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'visao' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('visao')}
           >
-            <BarChart2 className="w-5 h-5" /> Visão Geral
+            <BarChart2 className="w-5 h-5" />
+            <span>Visão Geral</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'professores' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('professores')}
           >
-            <Users className="w-5 h-5" /> Professores
+            <Users className="w-5 h-5" />
+            <span>Professores</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'turmas' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('turmas')}
           >
-            <BookOpen className="w-5 h-5" /> Turmas e Alunos
+            <BookOpen className="w-5 h-5" />
+            <span>Turmas e Alunos</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'eventos' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('eventos')}
           >
-            <Calendar className="w-5 h-5" /> Eventos Acadêmicos
+            <Calendar className="w-5 h-5" />
+            <span>Eventos Acadêmicos</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'relatorios' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('relatorios')}
           >
-            <FileText className="w-5 h-5" /> Relatórios Acadêmicos
+            <FileText className="w-5 h-5" />
+            <span>Relatórios Acadêmicos</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'comunicacao' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('comunicacao')}
           >
-            <MessageCircle className="w-5 h-5" /> Comunicação
+            <MessageCircle className="w-5 h-5" />
+            <span>Comunicação</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'acompanhamento' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('acompanhamento')}
           >
-            <TrendingUp className="w-5 h-5" /> Acompanhamento Pedagógico
+            <TrendingUp className="w-5 h-5" />{" "}
+            Acompanhamento Pedagógico
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'orientacao' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('orientacao')}
           >
-            <BookOpenCheck className="w-5 h-5" /> Orientação Educacional
+            <BookOpenCheck className="w-5 h-5" />
+            <span>Orientação Educacional</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'material' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('material')}
           >
-            <FileText className="w-5 h-5" /> Material Didático
+            <FileText className="w-5 h-5" />
+            <span>Material Didático</span>
           </button>
           <button 
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${section === 'ranking' ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-indigo-50 text-gray-700'}`} 
             onClick={() => setSection('ranking')}
           >
-            <Award className="w-5 h-5" /> Ranking Acadêmico
+            <Award className="w-5 h-5" />
+            <span>Ranking Acadêmico</span>
           </button>
         </nav>
         <div className="mt-auto pt-8">
           <Button className="w-full flex gap-2 bg-red-100 text-red-700 hover:bg-red-200" onClick={() => window.location.href = '/'}>
-            <LogOut className="w-5 h-5" /> Sair
+            <LogOut className="w-5 h-5" />
+            <span className="ml-2">Sair</span>
           </Button>
         </div>
       </motion.aside>
@@ -407,501 +419,7 @@ export default function CoordenadorDashboard() {
 
           {/* Seção de Acompanhamento Pedagógico */}
           {section === 'acompanhamento' && (
-            <motion.div
-              key="acompanhamento"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-indigo-700">Acompanhamento Pedagógico</h2>
-                <div className="flex gap-2">
-                  <Button className="flex gap-2" onClick={() => toast.success("Planejamento pedagógico exportado")}>
-                    <FileText className="w-5 h-5" /> Exportar Planejamento
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Planejamento pedagógico */}
-              <div className="bg-white rounded-xl shadow p-6 mb-6">
-                <h3 className="text-lg font-medium text-indigo-700 mb-4">Planejamento de Aulas e Projetos</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="text-indigo-700 border-b">
-                          <th className="py-3 px-2">Professor</th>
-                          <th className="py-3 px-2">Disciplina</th>
-                          <th className="py-3 px-2">Turma</th>
-                          <th className="py-3 px-2">Status</th>
-                          <th className="py-3 px-2">Data Limite</th>
-                          <th className="py-3 px-2">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[
-                          { id: 1, professor: "João Souza", disciplina: "Matemática", turma: "1A", status: "Pendente", dataLimite: "15/06/2024" },
-                          { id: 2, professor: "Ana Lima", disciplina: "Português", turma: "1A", status: "Aprovado", dataLimite: "10/06/2024" },
-                          { id: 3, professor: "Carlos Oliveira", disciplina: "História", turma: "2A", status: "Em revisão", dataLimite: "12/06/2024" },
-                          { id: 4, professor: "Mariana Costa", disciplina: "Geografia", turma: "2B", status: "Pendente", dataLimite: "18/06/2024" },
-                          { id: 5, professor: "Roberto Santos", disciplina: "Ciências", turma: "3A", status: "Aprovado", dataLimite: "08/06/2024" },
-                        ].map((plano, index) => (
-                          <tr key={index} className="border-b last:border-b-0 hover:bg-indigo-50">
-                            <td className="py-3 px-2 font-medium">{plano.professor}</td>
-                            <td className="py-3 px-2">{plano.disciplina}</td>
-                            <td className="py-3 px-2">{plano.turma}</td>
-                            <td className="py-3 px-2">
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                plano.status === 'Aprovado' ? 'bg-green-100 text-green-700' : 
-                                plano.status === 'Em revisão' ? 'bg-blue-100 text-blue-700' : 
-                                'bg-amber-100 text-amber-700'
-                              }`}>
-                                {plano.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-2">{plano.dataLimite}</td>
-                            <td className="py-3 px-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => toast.success(`Visualizando plano de ${plano.professor}`)}
-                              >
-                                Revisar
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="bg-indigo-50 rounded-lg p-6">
-                    <h4 className="font-medium text-indigo-800 mb-3">Próximos passos</h4>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-2">
-                        <div className="bg-amber-100 p-1 rounded mr-2 mt-0.5 flex-shrink-0">
-                          <AlertTriangle className="h-4 w-4 text-amber-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">5 planos pendentes de revisão</p>
-                          <p className="text-xs text-gray-500">Prazo final: 20/06/2024</p>
-                        </div>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="bg-blue-100 p-1 rounded mr-2 mt-0.5 flex-shrink-0">
-                          <BookOpen className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">Planejar reunião pedagógica</p>
-                          <p className="text-xs text-gray-500">Data: 15/06/2024</p>
-                        </div>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="bg-green-100 p-1 rounded mr-2 mt-0.5 flex-shrink-0">
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">Feedback sobre projetos</p>
-                          <p className="text-xs text-gray-500">Para: Equipe de professores</p>
-                        </div>
-                      </li>
-                    </ul>
-                    <Button 
-                      className="w-full mt-4"
-                      onClick={() => toast.success("Criando novo plano de acompanhamento")}
-                    >
-                      Novo Plano
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Observações de aula */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <motion.div 
-                  custom={0} 
-                  variants={cardVariants} 
-                  initial="hidden" 
-                  animate="visible" 
-                  className="bg-white rounded-lg shadow p-6"
-                >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-indigo-600" /> Observações de Aula
-                  </h3>
-                  <div className="overflow-y-auto max-h-80">
-                    <ul className="space-y-3">
-                      {[
-                        { professor: "João Souza", turma: "1A", disciplina: "Matemática", data: "05/06/2024", status: "Realizada" },
-                        { professor: "Ana Lima", turma: "1B", disciplina: "Português", data: "08/06/2024", status: "Agendada" },
-                        { professor: "Carlos Oliveira", turma: "2A", disciplina: "História", data: "02/06/2024", status: "Realizada" },
-                        { professor: "Mariana Costa", turma: "2B", disciplina: "Geografia", data: "10/06/2024", status: "Agendada" },
-                      ].map((obs, idx) => (
-                        <li key={idx} className="border rounded-lg p-3 hover:bg-indigo-50">
-                          <div className="flex justify-between">
-                            <div>
-                              <span className="font-medium">{obs.professor}</span> - {obs.disciplina}
-                              <div className="text-xs text-gray-500">Turma {obs.turma} • {obs.data}</div>
-                            </div>
-                            <span className={`px-2 py-1 rounded-full text-xs self-start ${
-                              obs.status === 'Realizada' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              {obs.status}
-                            </span>
-                          </div>
-                          {obs.status === 'Realizada' && (
-                            <div className="mt-2 flex gap-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="text-xs"
-                                onClick={() => toast.success(`Visualizando relatório de ${obs.professor}`)}
-                              >
-                                Ver Relatório
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                className="text-xs"
-                                onClick={() => toast.success(`Enviando feedback para ${obs.professor}`)}
-                              >
-                                Enviar Feedback
-                              </Button>
-                            </div>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <Button 
-                      className="w-full"
-                      onClick={() => toast.success("Agendando nova observação de aula")}
-                    >
-                      Agendar Nova Observação
-                    </Button>
-                  </div>
-                </motion.div>
-                
-                <motion.div 
-                  custom={1} 
-                  variants={cardVariants} 
-                  initial="hidden" 
-                  animate="visible" 
-                  className="bg-white rounded-lg shadow p-6"
-                >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-indigo-600" /> Desenvolvimento Docente
-                  </h3>
-                  <div className="overflow-y-auto max-h-80">
-                    <ul className="space-y-3">
-                      {[
-                        { professor: "João Souza", tipo: "Capacitação", título: "Matemática para ENEM", status: "Em progresso", progresso: 60 },
-                        { professor: "Ana Lima", tipo: "Projeto", título: "Oficinas de escrita criativa", status: "Concluído", progresso: 100 },
-                        { professor: "Carlos Oliveira", tipo: "Capacitação", título: "História Contemporânea", status: "Não iniciado", progresso: 0 },
-                        { professor: "Mariana Costa", tipo: "Projeto", título: "Mapeamento geográfico", status: "Em progresso", progresso: 40 },
-                      ].map((dev, idx) => (
-                        <li key={idx} className="border rounded-lg p-3 hover:bg-indigo-50">
-                          <div className="flex justify-between mb-2">
-                            <div>
-                              <span className="font-medium">{dev.professor}</span>
-                              <div className="text-xs text-gray-500">{dev.tipo}: {dev.título}</div>
-                            </div>
-                            <span className={`px-2 py-1 rounded-full text-xs self-start ${
-                              dev.status === 'Concluído' ? 'bg-green-100 text-green-700' : 
-                              dev.status === 'Em progresso' ? 'bg-blue-100 text-blue-700' : 
-                              'bg-amber-100 text-amber-700'
-                            }`}>
-                              {dev.status}
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div 
-                              className={`h-2 rounded-full ${
-                                dev.status === 'Concluído' ? 'bg-green-500' : 
-                                dev.status === 'Em progresso' ? 'bg-blue-500' : 
-                                'bg-amber-500'
-                              }`}
-                              style={{ width: `${dev.progresso}%` }}
-                            />
-                          </div>
-                          <div className="text-xs text-right text-gray-500">{dev.progresso}% concluído</div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <Button 
-                      className="w-full"
-                      onClick={() => toast.success("Criando novo plano de desenvolvimento")}
-                    >
-                      Novo Plano de Desenvolvimento
-                    </Button>
-                  </div>
-                </motion.div>
-              </div>
-              
-              {/* Projetos interdisciplinares */}
-              <div className="bg-white rounded-xl shadow p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-indigo-600" /> Projetos Interdisciplinares
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="text-indigo-700 border-b">
-                        <th className="py-3 px-2">Projeto</th>
-                        <th className="py-3 px-2">Coordenador</th>
-                        <th className="py-3 px-2">Disciplinas</th>
-                        <th className="py-3 px-2">Turmas</th>
-                        <th className="py-3 px-2">Status</th>
-                        <th className="py-3 px-2">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { nome: "Feira de Ciências", coordenador: "Roberto Santos", disciplinas: ["Ciências", "Matemática"], turmas: ["1A", "1B", "2A"], status: "Em andamento" },
-                        { nome: "Clube de Leitura", coordenador: "Ana Lima", disciplinas: ["Português", "História"], turmas: ["2A", "2B", "3A"], status: "Planejamento" },
-                        { nome: "Olimpíada de Matemática", coordenador: "João Souza", disciplinas: ["Matemática"], turmas: ["1A", "1B", "2A", "2B", "3A", "3B"], status: "Em andamento" },
-                        { nome: "Projeto Sustentabilidade", coordenador: "Mariana Costa", disciplinas: ["Geografia", "Ciências"], turmas: ["3A", "3B"], status: "Concluído" },
-                      ].map((projeto, index) => (
-                        <tr key={index} className="border-b last:border-b-0 hover:bg-indigo-50">
-                          <td className="py-3 px-2 font-medium">{projeto.nome}</td>
-                          <td className="py-3 px-2">{projeto.coordenador}</td>
-                          <td className="py-3 px-2">{projeto.disciplinas.join(", ")}</td>
-                          <td className="py-3 px-2">{projeto.turmas.join(", ")}</td>
-                          <td className="py-3 px-2">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              projeto.status === 'Concluído' ? 'bg-green-100 text-green-700' : 
-                              projeto.status === 'Em andamento' ? 'bg-blue-100 text-blue-700' : 
-                              'bg-amber-100 text-amber-700'
-                            }`}>
-                              {projeto.status}
-                            </span>
-                          </td>
-                          <td className="py-3 px-2 space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => toast.success(`Visualizando projeto ${projeto.nome}`)}
-                            >
-                              Detalhes
-                            </Button>
-                            <Button 
-                              size="sm"
-                              onClick={() => toast.success(`Gerenciando projeto ${projeto.nome}`)}
-                            >
-                              Gerenciar
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-6 flex justify-end">
-                  <Button 
-                    className="flex gap-2"
-                    onClick={() => toast.success("Criando novo projeto interdisciplinar")}
-                  >
-                    <Plus className="w-5 h-5" /> Novo Projeto
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Seção de Ranking Acadêmico */}
-          {section === 'ranking' && (
-            <motion.div
-              key="ranking"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-indigo-700">Ranking Acadêmico</h2>
-                <div className="flex gap-2">
-                  <select
-                    className="border rounded px-3 py-2 text-sm"
-                    defaultValue="atual"
-                  >
-                    <option value="atual">Bimestre Atual</option>
-                    <option value="anterior">Bimestre Anterior</option>
-                    <option value="anual">Anual</option>
-                  </select>
-                  <Button className="flex gap-2" onClick={() => toast.success("Relatório do ranking gerado")}>
-                    <FileText className="w-5 h-5" /> Exportar
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Classificação das turmas */}
-              <div className="bg-white rounded-xl shadow p-6 mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Classificação das Turmas</h3>
-                
-                <div className="space-y-4">
-                  {mockRankingTurmas
-                    .sort((a, b) => b.media - a.media)
-                    .map((turma, index) => (
-                    <div 
-                      key={turma.turma} 
-                      className={`bg-gradient-to-r ${
-                        index === 0 ? 'from-amber-50 to-amber-100 border-amber-200' : 
-                        index === 1 ? 'from-gray-50 to-gray-100 border-gray-200' : 
-                        index === 2 ? 'from-orange-50 to-orange-100 border-orange-200' : 
-                        'from-white to-indigo-50 border-indigo-100'
-                      } rounded-lg p-4 border`}
-                    >
-                      <div className="flex items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                          index === 0 ? 'bg-amber-500' : 
-                          index === 1 ? 'bg-gray-500' : 
-                          index === 2 ? 'bg-orange-600' : 
-                          'bg-indigo-500'
-                        }`}>
-                          {index + 1}
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-medium">Turma {turma.turma}</h4>
-                            <div className="flex gap-4">
-                              <div className="text-sm">
-                                <span className="text-gray-500">Média:</span> <span className="font-bold text-green-600">{turma.media.toFixed(1)}</span>
-                              </div>
-                              <div className="text-sm">
-                                <span className="text-gray-500">Frequência:</span> <span className="font-bold text-blue-600">{turma.frequencia}%</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-2 bg-gray-200 rounded-full h-2 overflow-hidden">
-                            <div 
-                              className={`h-full ${
-                                index === 0 ? 'bg-amber-500' : 
-                                index === 1 ? 'bg-gray-500' : 
-                                index === 2 ? 'bg-orange-600' : 
-                                'bg-indigo-500'
-                              }`} 
-                              style={{ width: `${(turma.media / 10) * 100}%` }} 
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Estatísticas e melhores alunos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <motion.div 
-                  custom={0} 
-                  variants={cardVariants} 
-                  initial="hidden" 
-                  animate="visible" 
-                  className="bg-white rounded-lg shadow p-6"
-                >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                    <Award className="h-5 w-5 text-indigo-600" /> Melhores Alunos
-                  </h3>
-                  <div className="space-y-4">
-                    {[
-                      { nome: "Ana Souza", turma: "1A", media: 9.8, foto: "👧" },
-                      { nome: "Pedro Santos", turma: "3A", media: 9.7, foto: "👦" },
-                      { nome: "Carolina Lima", turma: "2B", media: 9.5, foto: "👧" },
-                      { nome: "Rafael Gomes", turma: "3B", media: 9.4, foto: "👦" },
-                      { nome: "Julia Costa", turma: "1B", media: 9.3, foto: "👧" },
-                    ].map((aluno, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 hover:bg-indigo-50 rounded-lg transition-colors">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-lg">
-                            {aluno.foto}
-                          </div>
-                          <div className="ml-3">
-                            <div className="font-medium">{aluno.nome}</div>
-                            <div className="text-xs text-gray-500">Turma {aluno.turma}</div>
-                          </div>
-                        </div>
-                        <div className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full text-sm font-semibold">
-                          {aluno.media.toFixed(1)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <Button 
-                      className="w-full"
-                      onClick={() => toast.success("Relatório de desempenho de alunos gerado")}
-                    >
-                      Ver Todos os Alunos
-                    </Button>
-                  </div>
-                </motion.div>
-                
-                <motion.div 
-                  custom={1} 
-                  variants={cardVariants} 
-                  initial="hidden" 
-                  animate="visible" 
-                  className="bg-white rounded-lg shadow p-6"
-                >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-indigo-600" /> Estatísticas do Bimestre
-                  </h3>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-indigo-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-indigo-600 uppercase font-semibold mb-1">Média Geral</div>
-                      <div className="text-2xl font-bold text-indigo-700">7.8</div>
-                      <div className="text-xs text-green-600 mt-1">↑ 0.3 pts</div>
-                    </div>
-                    
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-green-600 uppercase font-semibold mb-1">Aprovação</div>
-                      <div className="text-2xl font-bold text-green-700">92%</div>
-                      <div className="text-xs text-green-600 mt-1">↑ 4%</div>
-                    </div>
-                    
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-blue-600 uppercase font-semibold mb-1">Frequência</div>
-                      <div className="text-2xl font-bold text-blue-700">95%</div>
-                      <div className="text-xs text-green-600 mt-1">↑ 2%</div>
-                    </div>
-                    
-                    <div className="bg-amber-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-amber-600 uppercase font-semibold mb-1">Participação</div>
-                      <div className="text-2xl font-bold text-amber-700">87%</div>
-                      <div className="text-xs text-green-600 mt-1">↑ 5%</div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm font-medium">Matemática</div>
-                      <div className="text-sm font-medium text-green-600">7.4</div>
-                    </div>
-                    <div className="bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "74%" }}></div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="text-sm font-medium">Português</div>
-                      <div className="text-sm font-medium text-green-600">7.9</div>
-                    </div>
-                    <div className="bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "79%" }}></div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="text-sm font-medium">Ciências</div>
-                      <div className="text-sm font-medium text-green-600">8.2</div>
-                    </div>
-                    <div className="bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "82%" }}></div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            </motion.div>
+            <AcompanhamentoPedagogico cardVariants={cardVariants} />
           )}
 
           {/* Seção de Orientação Educacional */}
