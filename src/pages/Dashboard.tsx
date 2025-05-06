@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { BarChart2, Users, UserCog, BookOpen, LogOut, Plus, Trash2, AlertTriangle, FileWarning, UserX, BookOpenCheck, Calendar, CalendarDays, PlusCircle, Clock, Award, TrendingUp, Inbox, CheckCircle2, XCircle, FileText, DollarSign, UtensilsCrossed } from "lucide-react";
+import { BarChart2, Users, UserCog, BookOpen, LogOut, Plus, Trash2, AlertTriangle, FileWarning, UserX, BookOpenCheck, Calendar, CalendarDays, PlusCircle, Clock, Award, TrendingUp, Inbox, CheckCircle2, XCircle, FileText, DollarSign, UtensilsCrossed, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { toast } from "react-hot-toast";
@@ -171,6 +171,11 @@ export default function Dashboard() {
   const [novoEvento, setNovoEvento] = useState({ titulo: "", data: format(new Date(), "yyyy-MM-dd"), tipo: "Reunião" });
   const [solicitacoes, setSolicitacoes] = useState(mockSolicitacoes);
   const [, navigate] = useLocation();
+  
+  // Adicionar estados para a barra de pesquisa
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Estados para gerenciar edição e exclusão de colaboradores
   const [colabEdit, setColabEdit] = useState<null | typeof mockColaboradores[0]>(null);
@@ -345,6 +350,129 @@ export default function Dashboard() {
     toast.success("Solicitação rejeitada!");
   }
 
+  // Definir os itens de navegação para a pesquisa
+  const navigationItems = [
+    { id: "visao", label: "Visão Geral", icon: <BarChart2 className="w-4 h-4" /> },
+    { id: "colaboradores", label: "Colaboradores", icon: <Users className="w-4 h-4" /> },
+    { id: "turmas", label: "Turmas", icon: <BookOpen className="w-4 h-4" /> },
+    { id: "permissoes", label: "Permissões", icon: <UserCog className="w-4 h-4" /> },
+    { id: "relatorios", label: "Relatórios", icon: <BookOpen className="w-4 h-4" /> },
+    { id: "eventos", label: "Eventos", icon: <Calendar className="w-4 h-4" /> },
+    { id: "ranking", label: "Ranking", icon: <Award className="w-4 h-4" /> },
+    { id: "historico", label: "Histórico", icon: <Clock className="w-4 h-4" /> },
+    { id: "solicitacoes", label: "Solicitações", icon: <Inbox className="w-4 h-4" /> },
+  ];
+
+  // Adicionar ações pesquisáveis para funcionalidades específicas
+  // Cada ação contém uma seção (para onde navegará) e uma ação específica a ser executada
+  const searchableActions = [
+    { id: "adicionar_turma", label: "Adicionar Nova Turma", icon: <PlusCircle className="w-4 h-4" />, section: "turmas", action: "add" },
+    { id: "adicionar_colaborador", label: "Adicionar Colaborador", icon: <PlusCircle className="w-4 h-4" />, section: "colaboradores", action: "add" },
+    { id: "adicionar_evento", label: "Adicionar Evento", icon: <PlusCircle className="w-4 h-4" />, section: "eventos", action: "add" },
+    { id: "exportar_relatorio", label: "Exportar Relatório", icon: <FileText className="w-4 h-4" />, section: "relatorios", action: "export" },
+    { id: "gerenciar_permissoes", label: "Gerenciar Permissões", icon: <UserCog className="w-4 h-4" />, section: "permissoes", action: "manage" },
+    { id: "aprovar_solicitacoes", label: "Aprovar Solicitações", icon: <CheckCircle2 className="w-4 h-4" />, section: "solicitacoes", action: "approve" },
+    { id: "visualizar_ranking", label: "Visualizar Ranking", icon: <Award className="w-4 h-4" />, section: "ranking", action: "view" },
+  ];
+
+  // Itens filtrados com base na pesquisa
+  // Combina tanto navegação para seções quanto ações específicas
+  const filteredItems = searchQuery 
+    ? [
+        ...navigationItems.filter(item => 
+          item.label.toLowerCase().includes(searchQuery.toLowerCase())
+        ),
+        ...searchableActions.filter(action => 
+          action.label.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      ]
+    : [];
+
+  // Estado para controlar a visibilidade dos resultados da pesquisa
+  const [showingResults, setShowingResults] = useState(false);
+  
+  // Função para navegar para a seção selecionada a partir da pesquisa
+  const navigateToSection = (sectionId: string, action?: string) => {
+    // Primeiro alterar a seção (navegação principal)
+    console.log(`Navegando para seção: ${sectionId}, ação: ${action || 'nenhuma'}`);
+    setSection(sectionId);
+    // Fechar a pesquisa após selecionar um item
+    setSearchOpen(false);
+    setSearchQuery("");
+    setShowingResults(false); // Ocultar resultados após selecionar uma opção
+    
+    // Se tiver uma ação específica a ser executada, disparar evento customizado
+    if (action) {
+      // Aumentar o timeout para dar mais tempo para os componentes renderizarem
+      setTimeout(() => {
+        try {
+          console.log(`Executando ação: ${action} para a seção: ${sectionId}`);
+          
+          // Disparar evento para que os componentes possam reagir
+          if (sectionId === "turmas" && action === "add") {
+            console.log("Disparando evento dashboard-action para adicionar turma");
+            document.dispatchEvent(new CustomEvent('dashboard-action', { 
+              detail: { section: 'turmas', action: 'add-turma' } 
+            }));
+          } 
+          else if (sectionId === "colaboradores" && action === "add") {
+            console.log("Abrindo modal para adicionar colaborador");
+            setShowAdd(true);
+          } 
+          else if (sectionId === "eventos" && action === "add") {
+            console.log("Disparando evento dashboard-action para adicionar evento");
+            document.dispatchEvent(new CustomEvent('dashboard-action', { 
+              detail: { section: 'eventos', action: 'add-evento' } 
+            }));
+          } 
+          else if (sectionId === "relatorios" && action === "export") {
+            console.log("Disparando evento dashboard-action para exportar relatório");
+            document.dispatchEvent(new CustomEvent('dashboard-action', { 
+              detail: { section: 'relatorios', action: 'export-relatorio' } 
+            }));
+          }
+          else if (sectionId === "permissoes" && action === "manage") {
+            toast.success("Acessando gerenciamento de permissões");
+          }
+          else if (sectionId === "solicitacoes" && action === "approve") {
+            toast.success("Acessando aprovação de solicitações");
+          }
+          else if (sectionId === "ranking" && action === "view") {
+            toast.success("Visualizando rankings");
+          }
+        } catch (error) {
+          console.error("Erro ao executar ação:", error);
+          toast.error("Ocorreu um erro ao executar a ação selecionada");
+        }
+      }, 1000); // Aumentar para 1000ms para garantir que os componentes estejam renderizados
+    }
+  };
+
+  // Efeito para focar no input quando abrir a pesquisa
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  // Fechar a pesquisa ao clicar fora dela
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchOpen && 
+        searchInputRef.current && 
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [searchOpen]);
+
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-indigo-50 to-blue-50">
       {/* Sidebar animada */}
@@ -433,6 +561,107 @@ export default function Dashboard() {
           <div>
             <h1 className="text-2xl font-bold text-indigo-800">Bem-vindo, {user.name}!</h1>
             <p className="text-gray-600">Acesso: <span className="capitalize font-semibold">{user.role}</span></p>
+          </div>
+          
+          {/* Adicionar barra de pesquisa */}
+          <div className="relative">
+            {searchOpen ? (
+              <div className="flex items-center bg-white rounded-lg shadow-md border border-gray-200 pl-3 pr-10 h-12 w-96">
+                <Search className="w-5 h-5 text-gray-400 mr-2" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Buscar seções ou ações específicas..."
+                  className="w-full focus:outline-none text-sm"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowingResults(true); // Mostrar resultados quando começa a digitar
+                  }}
+                />
+                <button 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full p-1 hover:bg-gray-100 z-10"
+                  onClick={() => setSearchOpen(false)}
+                >
+                  <XCircle className="w-5 h-5 text-gray-400" />
+                </button>
+                
+                {/* Resultados da pesquisa - Mostrar quando houver consulta */}
+                {(searchQuery || showingResults) && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white shadow-lg rounded-lg z-50 border border-gray-100 max-h-96 overflow-y-auto">
+                    {filteredItems.length > 0 ? (
+                      <>
+                        <div className="p-2 text-xs text-gray-500 border-b border-gray-100">
+                          {searchQuery.length > 0 && searchQuery.length < 3 
+                            ? "Digite pelo menos 3 caracteres para melhores resultados" 
+                            : filteredItems.length === 1 
+                              ? "1 resultado encontrado" 
+                              : `${filteredItems.length} resultados encontrados`
+                          }
+                        </div>
+                        {filteredItems.map(item => (
+                          <button
+                            key={item.id}
+                            className="flex items-center gap-3 w-full p-3 text-left hover:bg-indigo-50 text-gray-700 border-b border-gray-100 last:border-0 transition-colors"
+                            onClick={() => 'action' in item 
+                              ? navigateToSection((item as typeof searchableActions[0]).section, (item as typeof searchableActions[0]).action) 
+                              : navigateToSection(item.id)
+                            }
+                          >
+                            <span className="flex items-center justify-center text-indigo-600 bg-indigo-50 w-8 h-8 rounded-full">{item.icon}</span>
+                            <span className="font-medium">{item.label}</span>
+                            {'action' in item && (
+                              <span className="ml-auto text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full font-medium">
+                                Ação
+                              </span>
+                            )}
+                            {!('action' in item) && (
+                              <span className="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
+                                Página
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="p-4 text-gray-500 text-sm">
+                        <div className="text-center">
+                          <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                          <div className="font-medium">Nenhum resultado encontrado</div>
+                          <div className="text-xs mt-2 mb-3">Tente buscar por uma das ações abaixo:</div>
+                        </div>
+                        
+                        {/* Exemplos de ações que o usuário pode clicar diretamente */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                          {searchableActions.slice(0, 4).map(action => (
+                            <button
+                              key={action.id}
+                              className="flex items-center gap-2 p-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition-colors text-xs"
+                              onClick={() => {
+                                console.log(`Clicou diretamente na ação: ${action.label}`);
+                                navigateToSection(action.section, action.action);
+                              }}
+                            >
+                              {action.icon}
+                              <span>{action.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="border-gray-200 bg-white shadow-sm flex gap-2 items-center"
+                onClick={() => setSearchOpen(true)}
+              >
+                <Search className="w-4 h-4" />
+                <span>Buscar</span>
+              </Button>
+            )}
           </div>
         </motion.header>
         {/* Section Content */}
@@ -586,8 +815,8 @@ export default function Dashboard() {
                     <span className="text-indigo-700 font-medium">Comparar turnos</span>
                   </label>
                 </div>
-              </div>
-              
+          </div>
+          
               {/* Gráfico de barras Recharts - Renderiza os dados das médias de forma visual 
                   Possui animações, formatação personalizada nos eixos e tooltips melhoradas */}
               <div className="mt-2">
@@ -737,6 +966,7 @@ export default function Dashboard() {
           <Button 
                   className="flex gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md" 
                   onClick={() => setShowAdd(true)}
+                  data-action="add-colaborador"
           >
                   <Plus className="w-5 h-5" />
                   Adicionar Colaborador
@@ -1131,8 +1361,8 @@ export default function Dashboard() {
           </motion.div>
         )}
         {section === 'turmas' && (
-          <motion.div key="turmas" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} transition={{ duration: 0.4 }}>
-            <GestaoTurmas />
+          <motion.div key="turmas" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
+            <GestaoTurmas key="gestao-turmas-component" />
           </motion.div>
         )}
         {section === 'permissoes' && (
@@ -1142,12 +1372,12 @@ export default function Dashboard() {
         )}
         {section === 'relatorios' && (
           <motion.div key="relatorios" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <GestaoRelatorios />
+            <GestaoRelatorios key="gestao-relatorios-component" />
           </motion.div>
         )}
         {section === 'eventos' && (
           <motion.div key="eventos" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
-            <GestaoEventos />
+            <GestaoEventos key="gestao-eventos-component" />
           </motion.div>
         )}
         {section === 'ranking' && (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -148,6 +148,29 @@ export default function GestaoEventos() {
     toast.success("Evento removido com sucesso!");
   }
 
+  // Adicionar listener para eventos disparados do Dashboard
+  useEffect(() => {
+    const handleDashboardAction = (event: CustomEvent) => {
+      console.log("GestaoEventos: Evento recebido:", event.detail);
+      const { section, action } = event.detail || {};
+      if (section === 'eventos' && action === 'add-evento') {
+        console.log("GestaoEventos: Abrindo modal de adicionar evento");
+        // Abrir o modal de adicionar evento
+        setShowAddEvento(true);
+      }
+    };
+
+    // Adicionar evento
+    console.log("GestaoEventos: Adicionando event listener para dashboard-action");
+    document.addEventListener('dashboard-action', handleDashboardAction as EventListener);
+    
+    // Remover evento ao desmontar componente
+    return () => {
+      console.log("GestaoEventos: Removendo event listener para dashboard-action");
+      document.removeEventListener('dashboard-action', handleDashboardAction as EventListener);
+    };
+  }, []);
+
   return (
     <div>
       {/* Cabeçalho da seção */}
@@ -164,6 +187,9 @@ export default function GestaoEventos() {
           <Button 
             className="flex gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
             onClick={() => setShowAddEvento(true)}
+            data-action="add-evento"
+            id="btn-add-evento"
+            data-testid="add-evento-button"
           >
             <PlusCircle className="w-5 h-5" />
             Novo Evento

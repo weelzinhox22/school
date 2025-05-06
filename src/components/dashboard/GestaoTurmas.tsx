@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -91,6 +91,29 @@ export default function GestaoTurmas() {
     ? Math.round(turmas.reduce((acc, t) => acc + t.qtdAlunos, 0) / turmas.length) 
     : 0;
 
+  // Adicionar listener para eventos disparados do Dashboard
+  useEffect(() => {
+    const handleDashboardAction = (event: CustomEvent) => {
+      console.log("GestaoTurmas: Evento recebido:", event.detail);
+      const { section, action } = event.detail || {};
+      if (section === 'turmas' && action === 'add-turma') {
+        console.log("GestaoTurmas: Abrindo modal de adicionar turma");
+        // Abrir o modal de adicionar turma
+        setShowAddTurma(true);
+      }
+    };
+
+    // Adicionar evento
+    console.log("GestaoTurmas: Adicionando event listener para dashboard-action");
+    document.addEventListener('dashboard-action', handleDashboardAction as EventListener);
+    
+    // Remover evento ao desmontar componente
+    return () => {
+      console.log("GestaoTurmas: Removendo event listener para dashboard-action");
+      document.removeEventListener('dashboard-action', handleDashboardAction as EventListener);
+    };
+  }, []);
+
   /**
    * Função para lidar com adição de uma nova turma
    * @param e Evento do formulário
@@ -178,6 +201,9 @@ export default function GestaoTurmas() {
           <Button 
             className="flex gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md" 
             onClick={() => setShowAddTurma(true)}
+            data-action="add-turma"
+            id="btn-add-turma"
+            data-testid="add-turma-button"
           >
             <Plus className="w-5 h-5" />
             Nova Turma

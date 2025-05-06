@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -196,6 +196,29 @@ export default function GestaoRelatorios() {
     }
   }
 
+  // Adicionar listener para eventos disparados do Dashboard
+  useEffect(() => {
+    const handleDashboardAction = (event: CustomEvent) => {
+      console.log("GestaoRelatorios: Evento recebido:", event.detail);
+      const { section, action } = event.detail || {};
+      if (section === 'relatorios' && action === 'export-relatorio') {
+        console.log("GestaoRelatorios: Iniciando exportação de relatório");
+        // Acionar exportação de relatório
+        exportarRelatorio();
+      }
+    };
+
+    // Adicionar evento
+    console.log("GestaoRelatorios: Adicionando event listener para dashboard-action");
+    document.addEventListener('dashboard-action', handleDashboardAction as EventListener);
+    
+    // Remover evento ao desmontar componente
+    return () => {
+      console.log("GestaoRelatorios: Removendo event listener para dashboard-action");
+      document.removeEventListener('dashboard-action', handleDashboardAction as EventListener);
+    };
+  }, [exportarRelatorio]);
+
   return (
     <div>
       {/* Cabeçalho da seção */}
@@ -383,6 +406,9 @@ export default function GestaoRelatorios() {
                     onClick={exportarRelatorio}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md flex gap-2 items-center"
                     disabled={dadosRelatorio.length === 0}
+                    data-action="export-relatorio"
+                    id="btn-export-relatorio"
+                    data-testid="export-relatorio-button"
                   >
                     <Download className="w-4 h-4" />
                     Exportar Relatório
